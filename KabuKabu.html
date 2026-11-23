@@ -1,0 +1,812 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>KabuKabu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: marketing site with a live map hero; the app is a full-height map with a side panel (bottom sheet on phones); admin is a sidebar console. */
+:root{
+  --bg:#FFFFFF; --surface:#F4F4F1; --surface2:#EAEAE5; --ink:#101010; --muted:#666660; --line:#E4E4DE;
+  --btn:#101010; --btn-ink:#FFFFFF; --brand:#F26B1D; --brand-soft:#FDE9DB;
+  --ok:#12864E; --ok-soft:#DDF3E6; --warn:#8A5A06; --warn-soft:#F8EBCB; --bad:#B3341F; --bad-soft:#F6DDD7;
+  --land:#EEEEE9; --block:#E5E5DF; --road:#FFFFFF; --roadcase:#D6D6CE; --water:#BDD8EC; --park:#D3E7CE;
+  --shadow:0 8px 30px rgba(16,16,16,.12);
+  --display:'Manrope',system-ui,sans-serif; --body:'Inter',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F0F0E; --surface:#1A1A18; --surface2:#262623; --ink:#F3F3EE; --muted:#9C9C94; --line:#2E2E2A;
+  --btn:#F3F3EE; --btn-ink:#101010; --brand:#FF8236; --brand-soft:#3A2312;
+  --ok:#5BCB8C; --ok-soft:#173526; --warn:#E3B45A; --warn-soft:#3A2D12; --bad:#EE7D6A; --bad-soft:#3A1A14;
+  --land:#1B1D1B; --block:#232623; --road:#3A3C38; --roadcase:#121312; --water:#1B3544; --park:#1F3022;
+  --shadow:0 8px 30px rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F0F0E; --surface:#1A1A18; --surface2:#262623; --ink:#F3F3EE; --muted:#9C9C94; --line:#2E2E2A;
+  --btn:#F3F3EE; --btn-ink:#101010; --brand:#FF8236; --brand-soft:#3A2312;
+  --ok:#5BCB8C; --ok-soft:#173526; --warn:#E3B45A; --warn-soft:#3A2D12; --bad:#EE7D6A; --bad-soft:#3A1A14;
+  --land:#1B1D1B; --block:#232623; --road:#3A3C38; --roadcase:#121312; --water:#1B3544; --park:#1F3022;
+  --shadow:0 8px 30px rgba(0,0,0,.5); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:40}
+h1,h2,h3,h4{font-family:var(--display);font-weight:800;margin:0;letter-spacing:-.02em;line-height:1.1;text-wrap:balance}
+h1{font-size:clamp(2.3rem,5.4vw,4rem)} h2{font-size:clamp(1.7rem,3.4vw,2.5rem)} h3{font-size:1.2rem}
+p{margin:0}
+a{color:inherit}
+.wrap{max-width:1200px;margin:0 auto}
+.muted{color:var(--muted)} .small{font-size:.87rem} .num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap} .between{justify-content:space-between}
+.stack{display:flex;flex-direction:column;gap:16px;min-width:0}
+.eyebrow{font:700 .78rem var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+/* nav */
+#nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--bg);border-bottom:1px solid var(--line);margin-left:calc(-1 * max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1 * max(16px,env(safe-area-inset-right,0px)));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.nav{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:64px;flex-wrap:wrap;padding-block:8px}
+.logo{display:flex;align-items:center;gap:9px;font:800 1.4rem var(--display);letter-spacing:-.03em;text-decoration:none;cursor:pointer;background:none;border:0;color:var(--ink);padding:0}
+.logo svg{width:30px;height:30px;flex:none}
+.links{display:flex;gap:4px;flex-wrap:wrap}
+.links button,.tabs button{background:none;border:0;font:600 .92rem var(--body);color:var(--ink);padding:9px 13px;border-radius:999px;cursor:pointer}
+.links button:hover{background:var(--surface)}
+.tabs{display:inline-flex;background:var(--surface);border-radius:999px;padding:3px}
+.tabs button[aria-pressed="true"]{background:var(--btn);color:var(--btn-ink)}
+
+/* buttons and fields */
+.btn{font:700 .98rem var(--display);border:0;background:var(--surface);color:var(--ink);border-radius:12px;padding:14px 22px;min-height:50px;cursor:pointer;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.primary{background:var(--btn);color:var(--btn-ink)}
+.btn.brand{background:var(--brand);color:#1B0E02}
+.btn.danger{background:var(--bad-soft);color:var(--bad)}
+.btn.block{width:100%} .btn.sm{min-height:38px;padding:7px 14px;font-size:.86rem;border-radius:10px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+label{display:block;font-weight:600;font-size:.86rem;margin-bottom:6px}
+input[type=text],input[type=tel],input[type=number],select{width:100%;font:inherit;color:var(--ink);background:var(--surface);border:2px solid transparent;border-radius:12px;padding:12px 14px;min-height:50px}
+input[type=text]:focus,input[type=tel]:focus,input[type=number]:focus,select:focus{border-color:var(--ink)}
+input[type=file]{width:100%;font:inherit;font-size:.85rem;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--ink)}
+.hint{font-size:.8rem;color:var(--muted);margin-top:5px}
+.fields{display:grid;gap:14px} .two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:560px){.two{grid-template-columns:minmax(0,1fr)}}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;border-radius:999px;padding:4px 11px;background:var(--surface);color:var(--muted);white-space:nowrap}
+.chip.ok{background:var(--ok-soft);color:var(--ok)} .chip.warn{background:var(--warn-soft);color:var(--warn)} .chip.bad{background:var(--bad-soft);color:var(--bad)} .chip.acc{background:var(--brand-soft);color:var(--ink)}
+.pills{display:flex;gap:8px;flex-wrap:wrap}
+.pill{border:0;background:var(--surface);color:var(--ink);border-radius:999px;padding:9px 16px;font:700 .88rem var(--display);cursor:pointer;min-height:40px}
+.pill[aria-pressed="true"]{background:var(--btn);color:var(--btn-ink)}
+.card{background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:22px;min-width:0}
+.card.soft{background:var(--surface);border-color:transparent}
+.kv{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid var(--line)}
+.kv:last-child{border-bottom:0}
+.price{font:800 2.2rem var(--display);letter-spacing:-.03em}
+.av{width:48px;height:48px;border-radius:50%;background:var(--brand-soft);display:grid;place-items:center;font:800 1rem var(--display);flex:none}
+.plate{font:800 1rem var(--display);letter-spacing:.06em;border:2px solid var(--ink);border-radius:8px;padding:2px 10px;display:inline-block}
+.pin{font:800 2rem var(--display);letter-spacing:.3em;background:var(--brand-soft);border-radius:12px;padding:6px 18px;display:inline-block}
+.photo{aspect-ratio:4/3;border-radius:12px;background:var(--surface);display:grid;place-items:center;font-size:.76rem;color:var(--muted);overflow:hidden;text-align:center;max-width:100%}
+.photo img{width:100%;height:100%;object-fit:cover}
+.spin{width:24px;height:24px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--ink);animation:sp 1s linear infinite;flex:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+@keyframes pl{from{transform:scale(.5);opacity:.55}to{transform:scale(2.6);opacity:0}}
+.pulse{transform-box:fill-box;transform-origin:center;animation:pl 1.8s ease-out infinite}
+@media (prefers-reduced-motion:reduce){.spin,.pulse{animation:none}}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:14px;font-weight:600;font-size:.9rem;max-width:min(92vw,460px);z-index:60;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1} #toast.bad{background:var(--bad);color:#fff}
+
+/* landing */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:44px;align-items:center;padding-block:48px 56px}
+@media (max-width:900px){.hero{grid-template-columns:minmax(0,1fr);gap:28px;padding-block:28px 36px}}
+.hero p.lead{font-size:1.15rem;color:var(--muted);margin:16px 0 26px;max-width:46ch}
+.widget{background:var(--bg);border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px}
+.route{display:grid;grid-template-columns:26px minmax(0,1fr);gap:8px;background:var(--surface);border-radius:14px;padding:4px 10px 4px 8px}
+.rt{display:flex;flex-direction:column;align-items:center;padding:20px 0}
+.rt .d{width:10px;height:10px;border-radius:50%;background:var(--ink)} .rt .d.b{border-radius:2px}
+.rt .ln{flex:1;width:2px;background:var(--ink);opacity:.35;margin:3px 0}
+.route select{background:transparent;border:0;border-radius:0;min-height:52px;padding-left:4px}
+.route select:first-child{border-bottom:1px solid var(--line)}
+.route select:focus{border-color:transparent;outline:none}
+.herobox{position:relative;border-radius:28px;overflow:hidden;height:min(560px,70vw);min-height:340px;border:1px solid var(--line)}
+.herobox .tag{position:absolute;left:14px;bottom:14px;background:var(--bg);border-radius:14px;padding:10px 14px;box-shadow:var(--shadow);font-size:.86rem;max-width:calc(100% - 28px)}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;padding-bottom:64px}
+.strip div{background:var(--surface);border-radius:18px;padding:18px}
+.strip b{display:block;font:800 1.35rem var(--display);letter-spacing:-.02em}
+.sec{padding-block:64px;border-top:1px solid var(--line)}
+.sec h2{margin-bottom:12px}
+.sec .sub{color:var(--muted);max-width:56ch;margin-bottom:32px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.ico{width:48px;height:48px;border-radius:14px;background:var(--brand-soft);display:grid;place-items:center;margin-bottom:14px}
+.ico svg{width:26px;height:26px;stroke:var(--ink);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.stepn{font:800 .8rem var(--display);background:var(--btn);color:var(--btn-ink);width:30px;height:30px;border-radius:50%;display:grid;place-items:center;margin-bottom:14px}
+.band{background:var(--brand-soft);border-radius:28px;padding:clamp(22px,4vw,48px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:36px;align-items:center}
+@media (max-width:860px){.band{grid-template-columns:minmax(0,1fr)}}
+.band .card{border:0}
+.bars{display:flex;gap:8px;align-items:flex-end;height:120px}
+.bars div{flex:1;background:var(--ink);border-radius:6px 6px 0 0;min-width:8px}
+details{border-bottom:1px solid var(--line);padding:18px 0}
+summary{font:700 1.05rem var(--display);cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:12px}
+summary::after{content:"+";font-size:1.4rem;line-height:1}
+details[open] summary::after{content:"–"}
+details p{margin-top:10px;color:var(--muted);max-width:70ch}
+.cta{background:var(--btn);color:var(--btn-ink);border-radius:28px;padding:clamp(28px,5vw,56px);text-align:center;margin-block:24px 64px}
+.cta .btn{background:var(--btn-ink);color:var(--btn);margin-top:20px}
+footer{border-top:1px solid var(--line);padding-block:34px 44px;margin-left:calc(-1 * max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1 * max(16px,env(safe-area-inset-right,0px)));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+footer .wrap{display:flex;gap:24px;justify-content:space-between;flex-wrap:wrap}
+footer button{background:none;border:0;color:var(--muted);font:500 .9rem var(--body);cursor:pointer;padding:4px 0;text-align:left}
+
+/* app shell */
+.shell{position:relative;display:grid;grid-template-columns:minmax(340px,430px) minmax(0,1fr);height:min(860px,calc(100vh - 92px));min-height:560px;margin-block:14px;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:var(--bg)}
+.panel{overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:16px;border-right:1px solid var(--line);min-width:0}
+.mapbox{position:relative;min-width:0;min-height:0;grid-column:2;grid-row:1}
+.panel{grid-column:1;grid-row:1}
+@media (max-width:860px){
+  .shell{display:block;height:calc(100vh - 100px);min-height:520px;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));border-radius:0;border-inline:0}
+  .mapbox{position:absolute;inset:0}
+  .panel{position:absolute;left:0;right:0;bottom:0;max-height:58%;border-right:0;border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.18);background:var(--bg);padding-bottom:calc(22px + env(safe-area-inset-bottom,0px));z-index:5}
+}
+.map{position:absolute;inset:0;background:var(--land);touch-action:none}
+.map svg{display:block;width:100%;height:100%}
+.zoom{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:6px;z-index:3}
+.zoom button{width:42px;height:42px;border-radius:12px;border:0;background:var(--bg);box-shadow:var(--shadow);font:700 1.2rem var(--display);color:var(--ink);cursor:pointer}
+.legend{position:absolute;left:12px;top:12px;background:var(--bg);border-radius:12px;box-shadow:var(--shadow);padding:8px 12px;font-size:.76rem;display:flex;gap:12px;flex-wrap:wrap;z-index:3;max-width:calc(100% - 80px)}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.opt{display:flex;gap:14px;align-items:center;justify-content:space-between;border:2px solid var(--ink);border-radius:16px;padding:14px 16px}
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.steps div{font-size:.72rem;font-weight:700;color:var(--muted);border-top:4px solid var(--line);padding-top:6px}
+.steps div.on{border-color:var(--ink);color:var(--ink)}
+.log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:.84rem;color:var(--muted)}
+.log b{color:var(--ink)}
+.stars{display:flex;gap:2px}
+.stars button{font-size:2rem;line-height:1;background:none;border:0;cursor:pointer;color:var(--line);padding:2px 4px}
+.stars button.on{color:var(--brand)}
+.go{width:132px;height:132px;border-radius:50%;border:0;background:var(--btn);color:var(--btn-ink);font:800 1.6rem var(--display);cursor:pointer;box-shadow:var(--shadow)}
+.go.on{background:var(--ok);color:#fff}
+.go:disabled{opacity:.4;cursor:not-allowed}
+.rsteps{display:flex;gap:6px}
+.rsteps i{flex:1;height:4px;border-radius:4px;background:var(--line)} .rsteps i.on{background:var(--ink)}
+.terms{display:flex;gap:10px;align-items:flex-start;font-weight:500;font-size:.9rem}
+.terms input,.checks input{width:20px;height:20px;accent-color:var(--ink);flex:none}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi{background:var(--surface);border-radius:16px;padding:16px}
+.kpi b{display:block;font:800 1.6rem var(--display);letter-spacing:-.02em}
+
+/* admin */
+.adm{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;padding-block:24px 56px}
+@media (max-width:860px){.adm{grid-template-columns:minmax(0,1fr);gap:14px}}
+.side{display:flex;flex-direction:column;gap:4px;position:sticky;top:90px;align-self:start}
+@media (max-width:860px){.side{flex-direction:row;overflow-x:auto;position:static}}
+.side button{background:none;border:0;text-align:left;font:700 .95rem var(--display);padding:11px 14px;border-radius:12px;cursor:pointer;color:var(--ink);white-space:nowrap}
+.side button[aria-pressed="true"]{background:var(--btn);color:var(--btn-ink)}
+.tw{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.docs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:620px){.docs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.checks{display:grid;gap:8px}
+.checks label{display:flex;gap:10px;align-items:center;font-weight:500;margin:0}
+</style>
+
+<header id="nav"></header>
+<main id="view"></main>
+<footer id="foot" hidden></footer>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>Math.round(n).toLocaleString('fr-FR')+' FCFA';
+const fmtKm=n=>n.toFixed(1).replace('.',',')+' km';
+const now=()=>new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+const ini=n=>n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+const last8=v=>String(v||'').replace(/\D/g,'').slice(-8);
+const sum=(a,f)=>a.reduce((s,x)=>s+f(x),0);
+
+const PL=[
+ {id:'marche',name:'Grand Marché',lat:13.5116,lng:2.1118},
+ {id:'plateau',name:'Plateau',lat:13.5240,lng:2.1060},
+ {id:'aeroport',name:'Aéroport Diori Hamani',lat:13.4815,lng:2.1836},
+ {id:'univ',name:'Université Abdou Moumouni',lat:13.5280,lng:2.1030},
+ {id:'hopital',name:'Hôpital National',lat:13.5155,lng:2.1155},
+ {id:'yantala',name:'Yantala',lat:13.5340,lng:2.0990},
+ {id:'lazaret',name:'Lazaret',lat:13.4990,lng:2.1330},
+ {id:'koira',name:'Koira Kano',lat:13.4950,lng:2.1180},
+ {id:'pont',name:'Pont Kennedy',lat:13.5070,lng:2.1010}
+];
+const GPS={id:'gps',name:'Ma position (GPS)',lat:13.5085,lng:2.1140};
+const place=id=>id==='gps'?GPS:PL.find(p=>p.id===id);
+const SIZE={S:{label:'Petit (enveloppe, sac)',extra:0},M:{label:'Moyen (carton, courses)',extra:100},L:{label:'Grand (15 kg maximum)',extra:250}};
+const STATUS={searching:['Recherche','warn'],enroute:['Motard en route','acc'],ontrip:['En course','acc'],done:['Terminée','ok'],cancelled:['Annulée','bad'],no_rider:['Aucun motard','bad']};
+
+let S,cfg,MAP=null,AMB=[];
+const rad=x=>x*Math.PI/180;
+function km(a,b){const R=6371,dLa=rad(b.lat-a.lat),dLo=rad(b.lng-a.lng);const h=Math.sin(dLa/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLo/2)**2;return 2*R*Math.asin(Math.sqrt(h));}
+function priceFor(d,extra){return Math.max(cfg.min,Math.round((cfg.base+cfg.perKm*d)/50)*50)+(extra||0);}
+function quote(p,q,service,size){
+  const d=Math.max(0.5,Math.round(km(p,q)*1.3*10)/10);
+  const price=priceFor(d,service==='delivery'?SIZE[size].extra:0);
+  const comm=Math.round(price*cfg.commission/100);
+  return {d,price,comm,net:price-comm,eta:Math.max(3,Math.round(d/20*60))};
+}
+const riderById=id=>S.riders.find(r=>r.id===id);
+const curTrip=()=>S.trips.find(t=>t.id===S.curId);
+const busy=r=>S.trips.some(t=>t.riderId===r.id&&(t.status==='enroute'||t.status==='ontrip'));
+
+function init(){
+  cfg={base:0,perKm:100,min:500,commission:20,minTopup:2000,minBalance:300,radii:[2,3,5]};
+  const R=(id,name,phone,plate,idNum,lic,moto,bal,av,lat,lng,rating,extra)=>Object.assign({id,name,phone,plate,idNum,license:lic,moto,balance:bal,available:av,approved:true,status:'approved',blocked:false,lat,lng,rating,rn:30+Math.floor(Math.random()*40),photos:{}},extra||{});
+  S={route:'accueil',admTab:'dash',seq:4,curId:null,rating:0,
+    hero:{service:'ride',pickup:'marche',dest:'aeroport'},
+    cust:{step:'ok',name:'Aïchatou Moussa',phone:'96 12 34 56'},
+    draftC:{name:'',phone:'',otp:''},
+    draft:{service:'ride',pickup:'plateau',dest:'aeroport',note:'',pkg:'',size:'S',rcvName:'',rcvPhone:''},
+    riders:[
+      R('r1','Moussa Idrissa','96 40 11 22','2345 AB 01','NE-4471902','PC-018823','Haojue 125',5200,true,13.5130,2.1100,4.8),
+      R('r2','Abdoul Aziz Harouna','90 55 23 81','8812 AC 01','NE-3320148','PC-017740','Yamaha Crux',3400,true,13.5170,2.1080,4.6),
+      R('r3','Ibrahim Souley','91 22 67 05','1190 AD 01','NE-5509233','PC-021105','Honda CG 125',8000,true,13.5240,2.1040,4.9),
+      R('r4','Adamou Garba','98 03 44 19','6021 AA 01','NE-2287710','PC-016392','Sanya 100',1900,true,13.5030,2.1200,4.4),
+      R('r5','Hamidou Maïga','97 81 30 62','3377 AE 01','NE-6143025','PC-022871','Haojue 125',250,false,13.5290,2.1010,4.5),
+      R('r6','Issoufou Boubacar','93 14 58 70','7740 AB 01','NE-1983344','PC-015508','Yamaha Crux',4200,true,13.4990,2.1320,4.7),
+      R('r7','Oumarou Dan Dadi','99 62 09 33','4408 AC 01','NE-7012865','PC-023190','Honda CG 125',6100,true,13.4830,2.1800,4.8),
+      R('r8','Salissou Amadou','92 70 41 18','5586 AD 01','NE-8820417','PC-024466','Haojue 125',0,false,13.5100,2.1150,0,{approved:false,status:'pending',rn:0})
+    ],
+    txns:[],trips:[],checks:{},
+    rider:{id:null,mode:'pick',pin:'',step:0},
+    draftR:{name:'',phone:'',idNum:'',license:'',plate:'',moto:'',gName:'',gPhone:'',terms:false,idPhoto:null,licPhoto:null,motoPhoto:null,facePhoto:null},
+    topup:{amount:2000,method:'momo'},
+    alerts:[{time:'08:12',kind:'warn',text:'Inscription refusée : la plaque 2345 AB 01 est déjà liée au compte de Moussa Idrissa.'}]
+  };
+  S.riders.forEach(r=>{if(r.approved)S.txns.push({id:r.id,t:'07:30',label:'Recharge initiale',amount:r.balance+300,after:r.balance+300});});
+  seedTrip('delivery','plateau','marche','r3','09:05');
+  seedTrip('ride','aeroport','plateau','r7','09:20');
+  seedTrip('ride','marche','lazaret','r6','09:41');
+  AMB=PL.map((p,i)=>({lat:p.lat+0.002*Math.sin(i*2.3),lng:p.lng+0.002*Math.cos(i*1.7),ph:i*1.3}));
+}
+function seedTrip(service,pid,did,rid,time){
+  const p=place(pid),q=place(did),qt=quote(p,q,service,'S');
+  S.trips.push({id:'C-'+String(S.trips.length+1).padStart(4,'0'),service,pickup:{...p},dest:{...q},pickupName:p.name,destName:q.name,price:qt.price,comm:qt.comm,d:qt.d,status:'done',riderId:rid,time,custName:'Client démo',custPhone:'90 00 00 00',log:[]});
+}
+
+/* ---------- matching ---------- */
+function logT(t,text){t.log.push({time:now(),text});}
+function startMatching(t){t.radiusIdx=0;t.tried=[];t.log=[];t.offer=null;logT(t,'Recherche dans un rayon de '+cfg.radii[0]+' km');matchNext(t);}
+function eligible(r,t,radius){return r.approved&&!r.blocked&&r.available&&r.balance>=cfg.minBalance&&!busy(r)&&!t.tried.includes(r.id)&&km(r,t.pickup)<=radius;}
+function matchNext(t){
+  if(t.status!=='searching')return;
+  const radius=cfg.radii[t.radiusIdx];
+  const c=S.riders.filter(r=>eligible(r,t,radius)).sort((a,b)=>km(a,t.pickup)-km(b,t.pickup));
+  if(!c.length){
+    if(t.radiusIdx<cfg.radii.length-1){t.radiusIdx++;logT(t,'Aucun motard libre. Rayon élargi à '+cfg.radii[t.radiusIdx]+' km');return matchNext(t);}
+    t.status='no_rider';t.offer=null;logT(t,'Aucun motard disponible dans la zone');return render();
+  }
+  const r=c[0];t.tried.push(r.id);t.offer={riderId:r.id,until:Date.now()+20000};
+  logT(t,'Demande envoyée à '+r.name+' ('+fmtKm(km(r,t.pickup))+')');
+  clearTimeout(t.timer);
+  if(S.rider.id===r.id){t.timer=setTimeout(()=>declineOffer(t,r,'n’a pas répondu'),20000);}
+  else{t.timer=setTimeout(()=>{Math.random()<0.7?acceptOffer(t,r):declineOffer(t,r,'a refusé');},1800+Math.random()*1800);}
+  render();
+}
+function declineOffer(t,r,why){if(t.status!=='searching'||!t.offer||t.offer.riderId!==r.id)return;clearTimeout(t.timer);logT(t,r.name+' '+why);t.offer=null;matchNext(t);}
+function acceptOffer(t,r){
+  if(t.status!=='searching'||!t.offer||t.offer.riderId!==r.id)return;
+  clearTimeout(t.timer);
+  t.status='enroute';t.riderId=r.id;t.offer=null;t.atPickup=false;t.atDest=false;
+  t.etaMin=Math.max(2,Math.round(km(r,t.pickup)*1.3/20*60));
+  logT(t,r.name+' a accepté. Arrivée estimée dans '+t.etaMin+' min');
+  moveRider(r,t.pickup,()=>{t.atPickup=true;logT(t,r.name+' est arrivé au point de départ');render();});
+  render();
+}
+function moveRider(r,target,done){
+  cancelAnimationFrame(r.anim);
+  const from={lat:r.lat,lng:r.lng},ms=Math.min(7000,Math.max(2500,km(from,target)*1400)),t0=performance.now();
+  (function step(now){
+    const k=Math.min(1,(now-t0)/ms);
+    r.lat=from.lat+(target.lat-from.lat)*k;r.lng=from.lng+(target.lng-from.lng)*k;
+    drawMap();
+    if(k<1)r.anim=requestAnimationFrame(step);else if(done)done();
+  })(t0);
+}
+function completeTrip(t){
+  const r=riderById(t.riderId);
+  t.status='done';t.doneAt=now();r.balance-=t.comm;
+  S.txns.push({id:r.id,t:now(),label:'Commission '+t.id,amount:-t.comm,after:r.balance});
+  if(r.balance<cfg.minBalance){r.available=false;toast('Solde sous '+fmt(cfg.minBalance)+'. Rechargez pour recevoir de nouvelles demandes.','bad');}
+  logT(t,'Course terminée. Paiement espèces '+fmt(t.price));
+  render();
+}
+
+/* ---------- map engine ---------- */
+const B={lat0:13.545,lat1:13.470,lng0:2.070,lng1:2.190};
+const X=lng=>(lng-B.lng0)/(B.lng1-B.lng0)*1200, Y=lat=>(B.lat0-lat)/(B.lat0-B.lat1)*800;
+const RIVER=[[13.560,2.062],[13.545,2.075],[13.530,2.088],[13.515,2.097],[13.507,2.101],[13.495,2.112],[13.480,2.130],[13.465,2.150],[13.450,2.170]];
+const ROADS=[
+ [[13.5075,2.0880],[13.5070,2.1010],[13.5090,2.1065],[13.5116,2.1118],[13.5155,2.1155],[13.5200,2.1230],[13.5290,2.1300]],
+ [[13.5116,2.1118],[13.5180,2.1090],[13.5240,2.1060],[13.5280,2.1030],[13.5340,2.0990]],
+ [[13.5116,2.1118],[13.5030,2.1150],[13.4950,2.1180],[13.4960,2.1260],[13.4990,2.1330]],
+ [[13.4990,2.1330],[13.4930,2.1500],[13.4870,2.1700],[13.4815,2.1836],[13.4790,2.1950]],
+ [[13.5340,2.0990],[13.5290,2.1100],[13.5200,2.1230],[13.5100,2.1290],[13.4990,2.1330]],
+ [[13.5240,2.1060],[13.5200,2.1230]],
+ [[13.5030,2.1150],[13.5070,2.1010]]
+];
+function riverPx(){return RIVER.map(p=>[X(p[1]),Y(p[0])]);}
+function distSeg(px,py,a,b){const dx=b[0]-a[0],dy=b[1]-a[1],l=dx*dx+dy*dy||1;let t=((px-a[0])*dx+(py-a[1])*dy)/l;t=Math.max(0,Math.min(1,t));return Math.hypot(px-(a[0]+t*dx),py-(a[1]+t*dy));}
+function buildBase(){
+  const rv=riverPx(),path=pts=>pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(0)+' '+p[1].toFixed(0)).join(' ');
+  let seed=7;const rnd=()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+  let s='<rect x="-3000" y="-3000" width="7200" height="6800" fill="var(--land)"/>';
+  let blocks='',grid='';
+  const lat0=13.538,lat1=13.482,lng0=2.092,lng1=2.158,dl=0.0034,dg=0.0040;
+  for(let la=lat0;la>lat1;la-=dl){for(let lo=lng0;lo<lng1;lo+=dg){
+    const x=X(lo),y=Y(la),w=dg*10000-9,h=dl*10667-9;
+    const cx=x+w/2,cy=y+h/2,dr=Math.min.apply(null,rv.slice(1).map((b,i)=>distSeg(cx,cy,rv[i],b)));
+    if(dr<34||rnd()<0.16)continue;
+    const sh=rnd()*5;
+    blocks+='<rect x="'+(x+4+sh/2).toFixed(0)+'" y="'+(y+4+sh/2).toFixed(0)+'" width="'+(w-sh).toFixed(0)+'" height="'+(h-sh).toFixed(0)+'" rx="5" fill="var(--block)"/>';
+  }}
+  for(let la=lat0;la>lat1;la-=dl){grid+='M'+X(lng0).toFixed(0)+' '+Y(la).toFixed(0)+'H'+X(lng1).toFixed(0);}
+  for(let lo=lng0;lo<lng1;lo+=dg){grid+='M'+X(lo).toFixed(0)+' '+Y(lat0).toFixed(0)+'V'+Y(lat1).toFixed(0);}
+  s+=blocks;
+  [[13.5215,2.1000,44,26],[13.5010,2.1230,36,24],[13.5310,2.1130,40,24]].forEach(p=>{s+='<ellipse cx="'+X(p[1]).toFixed(0)+'" cy="'+Y(p[0]).toFixed(0)+'" rx="'+p[2]+'" ry="'+p[3]+'" fill="var(--park)"/>';});
+  s+='<path d="'+grid+'" stroke="var(--road)" stroke-width="3" fill="none" opacity=".8"/>';
+  s+='<path d="'+path(rv)+'" fill="none" stroke="var(--water)" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>';
+  const rd=ROADS.map(r=>path(r.map(p=>[X(p[1]),Y(p[0])]))).join(' ');
+  s+='<path d="'+rd.split(' M').join(' M')+'" fill="none" stroke="var(--roadcase)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>';
+  s+=ROADS.map(r=>'<path d="'+path(r.map(p=>[X(p[1]),Y(p[0])]))+'" fill="none" stroke="var(--road)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>').join('');
+  s+='<text x="'+X(2.0905).toFixed(0)+'" y="'+Y(13.5195).toFixed(0)+'" font-size="15" font-style="italic" fill="var(--muted)" transform="rotate(-62 '+X(2.0905).toFixed(0)+' '+Y(13.5195).toFixed(0)+')">Fleuve Niger</text>';
+  return s;
+}
+let BASE='';
+function mountMap(el,ctxFn,interactive){
+  if(!BASE)BASE=buildBase();
+  el.innerHTML='<div class="map"><svg viewBox="0 0 720 480" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Carte simplifiée de Niamey"><g>'+BASE+'</g><g id="dyn"></g></svg></div>'
+   +(interactive?'<div class="zoom"><button data-act="zoom" data-f="0.7" aria-label="Zoom avant">+</button><button data-act="zoom" data-f="1.4" aria-label="Zoom arrière">−</button><button data-act="fitmap" aria-label="Recentrer">⌖</button></div><div class="legend"><span><i class="dot" style="background:var(--ok)"></i>Disponible</span><span><i class="dot" style="background:var(--warn)"></i>Occupé</span><span><i class="dot" style="background:var(--muted)"></i>Hors ligne</span></div>':'');
+  const svg=el.querySelector('svg');
+  MAP={el,svg,dyn:svg.querySelector('#dyn'),ctx:ctxFn,vb:{x:340,y:230,w:720,h:480},fitKey:''};
+  if(interactive){
+    let drag=null;
+    svg.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,vx:MAP.vb.x,vy:MAP.vb.y};try{svg.setPointerCapture(e.pointerId);}catch(_){}});
+    svg.addEventListener('pointermove',e=>{if(!drag)return;const k=mapK();MAP.vb.x=drag.vx-(e.clientX-drag.x)*k;MAP.vb.y=drag.vy-(e.clientY-drag.y)*k;setVB(false);});
+    svg.addEventListener('pointerup',()=>{drag=null;});
+    svg.addEventListener('pointercancel',()=>{drag=null;});
+    svg.addEventListener('wheel',e=>{e.preventDefault();zoomMap(e.deltaY>0?1.15:0.87);},{passive:false});
+  }
+  setVB(true);
+}
+function mapK(){if(!MAP)return 1;const r=MAP.svg.getBoundingClientRect();return r.width?Math.max(MAP.vb.w/r.width,MAP.vb.h/r.height):1;}
+function setVB(redraw){const v=MAP.vb;MAP.svg.setAttribute('viewBox',v.x.toFixed(1)+' '+v.y.toFixed(1)+' '+v.w.toFixed(1)+' '+v.h.toFixed(1));if(redraw)drawMap();}
+function zoomMap(f){if(!MAP)return;const v=MAP.vb,nw=Math.max(260,Math.min(1900,v.w*f)),ff=nw/v.w;const cx=v.x+v.w/2,cy=v.y+v.h/2;v.w=nw;v.h*=ff;v.x=cx-v.w/2;v.y=cy-v.h/2;setVB(true);}
+function fitMap(pts){
+  if(!MAP||!pts.length)return;
+  const r=MAP.svg.getBoundingClientRect();if(!r.width||!r.height)return;
+  const asp=r.width/r.height;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  pts.forEach(p=>{const x=X(p.lng),y=Y(p.lat);x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);});
+  let w=Math.max(300,x1-x0+240),h=Math.max(200,y1-y0+240);
+  if(w/h>asp)h=w/asp;else w=h*asp;
+  const sheet=window.innerWidth<=860&&MAP.interactive!==false?0.2:0;
+  MAP.vb={x:(x0+x1)/2-w/2,y:(y0+y1)/2-h/2+h*sheet,w,h};setVB(true);
+}
+function heroCtx(){
+  const t=Date.now(),calm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return {pickup:place(S.hero.pickup),dest:place(S.hero.dest),riders:AMB.map(a=>({lat:a.lat+(calm?0:0.0012*Math.sin(t/2500+a.ph)),lng:a.lng+(calm?0:0.0012*Math.cos(t/3100+a.ph*1.7)),st:'ok'}))};
+}
+function ridersAll(mineId){return S.riders.filter(r=>r.approved&&!r.blocked).map(r=>({lat:r.lat,lng:r.lng,st:mineId===r.id?'mine':busy(r)?'busy':r.available?'ok':'off',name:r.name}));}
+function appCtx(){
+  if(S.route==='commander'){
+    if(S.cust.step!=='ok')return {riders:ridersAll()};
+    const t=curTrip();
+    if(t){const r=t.riderId?riderById(t.riderId):null;return {t,riders:ridersAll(r&&r.id)};}
+    const d=S.draft;return {pickup:place(d.pickup),dest:d.dest!==d.pickup?place(d.dest):null,radius:cfg.radii[0],riders:ridersAll()};
+  }
+  const r=riderById(S.rider.id);
+  if(!r)return {riders:ridersAll()};
+  const t=S.trips.find(x=>x.riderId===r.id&&(x.status==='enroute'||x.status==='ontrip'))||S.trips.find(x=>x.status==='searching'&&x.offer&&x.offer.riderId===r.id);
+  return {t:t||null,riders:ridersAll(r.id),me:r};
+}
+function drawMap(){
+  if(!MAP)return;
+  const c=MAP.ctx(),t=c.t,k=mapK();
+  const pickup=t?t.pickup:c.pickup,dest=t?t.dest:c.dest;
+  const radius=t?(t.status==='searching'?cfg.radii[t.radiusIdx||0]:null):c.radius;
+  const px=(a,b)=>X(a.lng).toFixed(1)+','+Y(a.lat).toFixed(1);
+  let s='';
+  if(pickup&&radius)s+='<circle cx="'+X(pickup.lng).toFixed(1)+'" cy="'+Y(pickup.lat).toFixed(1)+'" r="'+(radius*94)+'" fill="var(--brand)" fill-opacity=".07" stroke="var(--brand)" stroke-opacity=".5" stroke-width="'+(1.5*k)+'" stroke-dasharray="'+(6*k)+' '+(6*k)+'"/>';
+  const line=(a,b,dash)=>{const d='M'+px(a)+' L'+px(b);return '<path d="'+d+'" stroke="var(--bg)" stroke-width="'+(9*k)+'" stroke-linecap="round" fill="none"/><path d="'+d+'" stroke="var(--ink)" stroke-width="'+(4*k)+'" stroke-linecap="round" fill="none"'+(dash?' stroke-dasharray="'+(2*k)+' '+(9*k)+'"':'')+'/>';};
+  const tr=t&&t.riderId?riderById(t.riderId):(c.me||null);
+  if(t&&t.status==='enroute'&&tr)s+=line(tr,pickup,true);
+  else if(t&&t.status==='ontrip')s+=line(pickup,dest,false);
+  else if(!t&&pickup&&dest)s+=line(pickup,dest,true);
+  PL.forEach(p=>{const x=X(p.lng),y=Y(p.lat);s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+(3*k)+'" fill="var(--muted)"/><text x="'+(x+7*k).toFixed(1)+'" y="'+(y+4*k).toFixed(1)+'" font-size="'+(11.5*k)+'" font-weight="600" font-family="Inter,sans-serif" fill="var(--muted)" stroke="var(--land)" stroke-width="'+(3.5*k)+'" paint-order="stroke">'+esc(p.name)+'</text>';});
+  (c.riders||[]).forEach(r=>{
+    const cx=X(r.lng).toFixed(1),cy=Y(r.lat).toFixed(1),col=r.st==='mine'?'var(--brand)':r.st==='busy'?'var(--warn)':r.st==='ok'?'var(--ok)':'var(--muted)';
+    if(r.st==='mine')s+='<circle class="pulse" cx="'+cx+'" cy="'+cy+'" r="'+(11*k)+'" fill="var(--brand)"/>';
+    s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+((r.st==='mine'?9:6.5)*k)+'" fill="'+col+'" stroke="var(--bg)" stroke-width="'+(2.5*k)+'"/>';
+  });
+  const bubble=(x,y,text)=>{const w=(text.length*7.2+18)*k,h=26*k;return '<g><rect x="'+(x-w/2).toFixed(1)+'" y="'+(y-h-14*k).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+h+'" rx="'+(8*k)+'" fill="var(--ink)"/><text x="'+x.toFixed(1)+'" y="'+(y-h/2-14*k+4.5*k).toFixed(1)+'" text-anchor="middle" font-size="'+(12*k)+'" font-weight="700" font-family="Inter,sans-serif" fill="var(--bg)">'+esc(text)+'</text></g>';};
+  if(pickup){const x=X(pickup.lng),y=Y(pickup.lat);s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+(11*k)+'" fill="var(--ink)" stroke="var(--bg)" stroke-width="'+(3*k)+'"/><circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+(4*k)+'" fill="var(--bg)"/>';}
+  if(dest){const x=X(dest.lng),y=Y(dest.lat);s+='<rect x="'+(x-10*k).toFixed(1)+'" y="'+(y-10*k).toFixed(1)+'" width="'+(20*k)+'" height="'+(20*k)+'" rx="'+(4*k)+'" fill="var(--ink)" stroke="var(--bg)" stroke-width="'+(3*k)+'"/><rect x="'+(x-4*k).toFixed(1)+'" y="'+(y-4*k).toFixed(1)+'" width="'+(8*k)+'" height="'+(8*k)+'" fill="var(--bg)"/>';}
+  if(t&&t.status==='enroute'&&tr){const lab=t.atPickup?'Arrivé':t.etaMin+' min';s+=bubble(X(tr.lng),Y(tr.lat),lab);}
+  if(t&&t.status==='ontrip'&&dest)s+=bubble(X(dest.lng),Y(dest.lat),'Arrivée');
+  MAP.dyn.innerHTML=s;
+}
+function mapSync(){
+  if(!MAP)return;
+  const c=MAP.ctx(),t=c.t;
+  const pickup=t?t.pickup:c.pickup,dest=t?t.dest:c.dest,tr=t&&t.riderId?riderById(t.riderId):null;
+  const key=S.route+'|'+(pickup&&pickup.id||'')+'|'+(dest&&dest.id||'')+'|'+(t?t.id+t.status:'');
+  if(key!==MAP.fitKey){
+    MAP.fitKey=key;
+    let pts=[];
+    if(t&&t.status==='enroute'&&tr)pts=[tr,pickup];else if(t)pts=[pickup,dest];else pts=[pickup,dest].filter(Boolean);
+    if(S.route!=='accueil'&&!pts.length&&c.me)pts=[c.me];
+    if(pts.length)fitMap(pts);
+  }
+  drawMap();
+}
+
+/* ---------- views: shared ---------- */
+const LOGO='<svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="var(--brand)"/><path d="M9 22V10m0 6 7-6m-7 6 7 6M20 22l3-12" stroke="#1B0E02" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICON={
+  moto:'<svg viewBox="0 0 24 24"><circle cx="5.5" cy="16.5" r="3"/><circle cx="18.5" cy="16.5" r="3"/><path d="M5.5 16.5 9 9h4l2.5 7.5M9 9 7.5 6.5H5M13 9l3-2h2"/></svg>',
+  box:'<svg viewBox="0 0 24 24"><path d="m12 3 8 4v10l-8 4-8-4V7zM4 7l8 4 8-4M12 11v10"/></svg>',
+  shield:'<svg viewBox="0 0 24 24"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6z"/><path d="m9 12 2 2 4-4"/></svg>',
+  lock:'<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+  phone:'<svg viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/></svg>',
+  star:'<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>'
+};
+function chip(status){const s=STATUS[status];return '<span class="chip '+s[1]+'">'+s[0]+'</span>';}
+function stepper(t){const idx={searching:0,enroute:1,ontrip:2,done:3}[t.status];return '<div class="steps">'+['Recherche','En route','En course','Terminé'].map((l,i)=>'<div class="'+(i<=idx?'on':'')+'">'+l+'</div>').join('')+'</div>';}
+function logHTML(t){return '<ul class="log">'+t.log.slice().reverse().map(l=>'<li><b>'+l.time+'</b> '+esc(l.text)+'</li>').join('')+'</ul>';}
+function routeInputs(pkVal,dsVal,pkBind,dsBind){
+  const opt=(list,sel)=>list.map(p=>'<option value="'+p.id+'"'+(p.id===sel?' selected':'')+'>'+esc(p.name)+'</option>').join('');
+  return '<div class="route"><div class="rt"><i class="d"></i><i class="ln"></i><i class="d b"></i></div><div><select aria-label="Départ" data-bind="'+pkBind+'" data-r>'+opt([GPS].concat(PL),pkVal)+'</select><select aria-label="Destination" data-bind="'+dsBind+'" data-r>'+opt(PL,dsVal)+'</select></div></div>';
+}
+function countNear(p,radius){return S.riders.filter(r=>r.approved&&!r.blocked&&r.available&&r.balance>=cfg.minBalance&&!busy(r)&&km(r,p)<=radius).length;}
+
+/* ---------- landing ---------- */
+function vLanding(){
+  const faq=[
+   ['Comment je paie ?','En espèces, directement au motard à l’arrivée. Le prix est affiché avant la commande et ne change pas pendant la course.'],
+   ['Que se passe-t-il si aucun motard n’est libre ?','KabuKabu cherche d’abord dans un rayon de '+cfg.radii[0]+' km, puis '+cfg.radii[1]+' km et '+cfg.radii[2]+' km. Si personne n’est disponible, vous pouvez relancer la recherche.'],
+   ['Quels colis sont interdits ?','Armes, drogues, produits dangereux ou inflammables. Le colis ne doit pas dépasser 15 kg. Le motard peut refuser un colis non conforme.'],
+   ['Pourquoi le motard recharge-t-il un solde ?','Le client paie le motard en espèces. La commission de '+cfg.commission+' % est déduite automatiquement du solde prépayé du motard. Sans solde, il ne reçoit plus de demandes.'],
+   ['Comment devenir motard ?','Créez votre profil avec votre carte d’identité, votre permis, la plaque et une photo de votre moto. Une fois le dossier validé, rechargez '+fmt(cfg.minTopup)+' minimum et passez en ligne.']
+  ];
+  return `
+  <section class="hero wrap">
+    <div>
+      <p class="eyebrow">Niamey, Niger</p>
+      <h1 style="margin-top:12px">Une moto, en quelques minutes.</h1>
+      <p class="lead">Commandez une course ou faites livrer un colis. Un motard vérifié vient vous chercher. Vous payez en espèces, ${fmt(cfg.min)} jusqu’à 5 km.</p>
+      <div class="widget" id="hw"></div>
+    </div>
+    <div class="herobox"><div id="heroMap"></div><div class="tag" id="htag"></div></div>
+  </section>
+  <section class="wrap strip">
+    <div><b>${fmt(cfg.min)}</b><span class="muted small">jusqu’à 5 km, puis ${fmt(cfg.perKm)} par km</span></div>
+    <div><b>Espèces</b><span class="muted small">Aucun compte bancaire nécessaire</span></div>
+    <div><b>3 pièces vérifiées</b><span class="muted small">Carte d’identité, permis et plaque</span></div>
+    <div><b>Code à 4 chiffres</b><span class="muted small">Remise sécurisée de chaque colis</span></div>
+  </section>
+  <section class="wrap sec" id="s-services">
+    <h2>Deux façons d’utiliser KabuKabu</h2><p class="sub">Un seul compte pour vous déplacer et pour envoyer vos colis, sans appeler personne.</p>
+    <div class="cards">
+      <div class="card soft"><div class="ico">${ICON.moto}</div><h3>Course moto</h3><p class="muted" style="margin:8px 0 18px">Plus rapide qu’un taxi dans la circulation et moins cher. Le motard arrive là où vous êtes.</p><button class="btn primary" data-act="heroGo" data-v="ride">Commander une course</button></div>
+      <div class="card soft"><div class="ico">${ICON.box}</div><h3>Livraison de colis</h3><p class="muted" style="margin:8px 0 18px">Envoyez un sac, un carton ou des courses à un proche ou à un client. Le destinataire donne un code pour recevoir le colis.</p><button class="btn primary" data-act="heroGo" data-v="delivery">Envoyer un colis</button></div>
+    </div>
+  </section>
+  <section class="wrap sec" id="s-how">
+    <h2>Comment ça marche</h2><p class="sub">Trois étapes, sans téléphoner à un motard.</p>
+    <div class="cards">
+      <div><div class="stepn">1</div><h3>Indiquez votre trajet</h3><p class="muted" style="margin-top:8px">Choisissez le départ et la destination. Ajoutez un repère comme « près de la pharmacie, portail bleu ». Le prix s’affiche tout de suite.</p></div>
+      <div><div class="stepn">2</div><h3>Un motard accepte</h3><p class="muted" style="margin-top:8px">La demande part au motard disponible le plus proche. Vous voyez son nom, sa moto, sa plaque et sa note, puis vous le suivez sur la carte.</p></div>
+      <div><div class="stepn">3</div><h3>Payez en espèces</h3><p class="muted" style="margin-top:8px">Vous payez le prix annoncé à l’arrivée. Vous notez le motard et la course est enregistrée dans votre historique.</p></div>
+    </div>
+  </section>
+  <section class="wrap sec" id="s-prices">
+    <div class="band" style="background:var(--surface)">
+      <div><p class="eyebrow">Tarifs</p><h2 style="margin-top:10px">${fmt(cfg.min)} jusqu’à 5 km.</h2><p class="muted" style="margin-top:14px;max-width:44ch">Ensuite ${fmt(cfg.perKm)} par kilomètre. Les colis moyens ajoutent ${fmt(SIZE.M.extra)} et les grands colis ${fmt(SIZE.L.extra)}. Pas de supplément caché.</p></div>
+      <div class="card"><label for="dist">Distance du trajet : <b id="distv">5,0 km</b></label><input id="dist" type="range" min="1" max="25" step="0.5" value="5" data-live="calc"><div class="price num" id="distp" style="margin-top:14px">${fmt(cfg.min)}</div><p class="hint">Prix d’une course moto. La distance réelle dépend de l’itinéraire.</p></div>
+    </div>
+  </section>
+  <section class="wrap sec" id="s-rider">
+    <div class="band">
+      <div class="stack"><p class="eyebrow">Pour les motards</p><h2>Vous avez une moto ? Gagnez de l’argent.</h2><p class="muted">Passez en ligne quand vous voulez. Les clients proches de vous reçoivent votre profil, et vous gardez ${100-cfg.commission} % de chaque course.</p>
+        <ol class="muted" style="margin:0;padding-left:20px;display:grid;gap:6px"><li>Créez votre profil et envoyez vos pièces.</li><li>Notre équipe valide votre dossier.</li><li>Rechargez ${fmt(cfg.minTopup)} minimum.</li><li>Passez en ligne et acceptez vos courses.</li></ol>
+        <div><button class="btn primary" data-act="go" data-route="motard">Devenir motard</button></div></div>
+      <div class="card stack"><h3>Simulez vos gains</h3>
+        <div><label for="cpd">Courses par jour : <b id="cpdv">10</b></label><input id="cpd" type="range" min="2" max="30" step="1" value="10" data-live="calc"></div>
+        <div><label for="avg">Prix moyen d’une course : <b id="avgv">${fmt(800)}</b></label><input id="avg" type="range" min="500" max="2500" step="100" value="800" data-live="calc"></div>
+        <div><div class="kv"><span>Encaissé en espèces par jour</span><b class="num" id="eg">8 000 FCFA</b></div><div class="kv"><span>Commission (${cfg.commission} %)</span><span class="num" id="ec">− 1 600 FCFA</span></div><div class="kv"><span>Vos gains par jour</span><b class="num" id="en">6 400 FCFA</b></div></div>
+        <p class="hint">Simulation indicative. Vos gains réels dépendent du nombre de courses.</p></div>
+    </div>
+  </section>
+  <section class="wrap sec" id="s-safety">
+    <h2>Pensé pour la confiance</h2><p class="sub">Chaque motard est vérifié avant de pouvoir prendre une course.</p>
+    <div class="cards">
+      <div class="card"><div class="ico">${ICON.shield}</div><h3>Motards vérifiés</h3><p class="muted" style="margin-top:8px">Carte d’identité, permis, plaque et photo de la moto contrôlés par notre équipe. Un même document ne peut pas ouvrir deux comptes.</p></div>
+      <div class="card"><div class="ico">${ICON.lock}</div><h3>Code de remise</h3><p class="muted" style="margin-top:8px">Pour un colis, le destinataire donne un code à 4 chiffres. Sans ce code, la livraison ne peut pas être validée.</p></div>
+      <div class="card"><div class="ico">${ICON.phone}</div><h3>Numéros masqués</h3><p class="muted" style="margin-top:8px">Client et motard communiquent par l’application pendant la course. Votre numéro reste privé.</p></div>
+      <div class="card"><div class="ico">${ICON.star}</div><h3>Notes des clients</h3><p class="muted" style="margin-top:8px">Chaque course se termine par une note. Les motards les moins bien notés sont examinés par l’équipe.</p></div>
+    </div>
+    <p class="hint" style="margin-top:16px">Bientôt : bouton SOS et partage du trajet avec un proche.</p>
+  </section>
+  <section class="wrap sec" id="s-faq"><h2 style="margin-bottom:20px">Questions fréquentes</h2>${faq.map(f=>'<details><summary>'+f[0]+'</summary><p>'+f[1]+'</p></details>').join('')}</section>
+  <section class="wrap"><div class="cta"><h2>Prêt à partir ?</h2><p style="opacity:.8;margin-top:10px">Commandez votre première course à Niamey.</p><button class="btn" data-act="go" data-route="commander">Commander maintenant</button></div></section>`;
+}
+function renderHero(){
+  const h=S.hero,qt=h.pickup===h.dest?null:quote(place(h.pickup),place(h.dest),h.service,'S');
+  const near=countNear(place(h.pickup),cfg.radii[0]);
+  const el=$('#hw');if(!el)return;
+  el.innerHTML='<div class="pills"><button class="pill" aria-pressed="'+(h.service==='ride')+'" data-act="heroSvc" data-v="ride">Course</button><button class="pill" aria-pressed="'+(h.service==='delivery')+'" data-act="heroSvc" data-v="delivery">Livraison</button></div>'
+   +routeInputs(h.pickup,h.dest,'hero.pickup','hero.dest')
+   +(qt?'<div class="row between"><div><div class="price num">'+fmt(qt.price)+'</div><p class="small muted">'+fmtKm(qt.d)+' · environ '+qt.eta+' min</p></div><span class="chip '+(near?'ok':'bad')+'">'+near+' motard'+(near>1?'s':'')+' proche'+(near>1?'s':'')+'</span></div><button class="btn primary block" data-act="heroOrder">Commander</button>':'<p class="chip bad">Choisissez un départ et une destination différents.</p>');
+  const tag=$('#htag');if(tag)tag.innerHTML='<b>Démonstration</b><br><span class="muted">'+AMB.length+' motards en ligne sur la carte. Positions simulées.</span>';
+}
+function updateCalcs(){
+  const d=$('#dist');if(d){const v=Number(d.value);$('#distv').textContent=fmtKm(v);$('#distp').textContent=fmt(priceFor(v));}
+  const c=$('#cpd'),a=$('#avg');
+  if(c&&a){const n=Number(c.value),p=Number(a.value),g=n*p,cm=Math.round(g*cfg.commission/100);
+    $('#cpdv').textContent=n;$('#avgv').textContent=fmt(p);$('#eg').textContent=fmt(g);$('#ec').textContent='− '+fmt(cm);$('#en').textContent=fmt(g-cm);}
+}
+
+/* ---------- customer app ---------- */
+function vSignup(){
+  const c=S.draftC;
+  if(S.cust.step==='otp')return '<div class="stack"><h2>Code de vérification</h2><p class="muted">Un code à 4 chiffres est envoyé par SMS au '+esc(c.phone)+'.</p><div><label for="otp">Code reçu</label><input id="otp" type="text" inputmode="numeric" maxlength="4" data-bind="draftC.otp" value="'+esc(c.otp)+'"><p class="hint">Code de démonstration : 4821</p></div><button class="btn primary block" data-act="verifyOtp">Valider mon compte</button></div>';
+  return '<div class="stack"><h2>Créer mon compte</h2><p class="muted">Votre nom et votre téléphone suffisent. La pièce d’identité est facultative.</p><div><label for="cn">Nom complet</label><input id="cn" type="text" data-bind="draftC.name" value="'+esc(c.name)+'" autocomplete="name"></div><div><label for="cp">Téléphone</label><input id="cp" type="tel" data-bind="draftC.phone" value="'+esc(c.phone)+'" placeholder="96 00 00 00"></div><div><label for="ci">Pièce d’identité (facultatif)</label><input id="ci" type="file" accept="image/*"></div><button class="btn primary block" data-act="sendOtp">Recevoir le code par SMS</button><button class="btn block" data-act="demoCust">Utiliser le compte de démonstration</button></div>';
+}
+function vOrderForm(){
+  const d=S.draft,del=d.service==='delivery',same=d.pickup===d.dest;
+  const qt=same?null:quote(place(d.pickup),place(d.dest),d.service,d.size);
+  const near=countNear(place(d.pickup),cfg.radii[0]);
+  return '<div class="row between"><div><h2 style="font-size:1.6rem">Où allez-vous ?</h2><p class="muted small">'+esc(S.cust.name)+'</p></div><button class="btn sm" data-act="logoutCust">Déconnexion</button></div>'
+  +'<div class="pills"><button class="pill" aria-pressed="'+(!del)+'" data-act="svc" data-v="ride">Course moto</button><button class="pill" aria-pressed="'+del+'" data-act="svc" data-v="delivery">Livraison</button></div>'
+  +routeInputs(d.pickup,d.dest,'draft.pickup','draft.dest')
+  +'<div><label for="nt">Repère (facultatif)</label><input id="nt" type="text" data-bind="draft.note" value="'+esc(d.note)+'" placeholder="Près de la pharmacie, portail bleu"></div>'
+  +(del?'<div class="two"><div><label for="pg">Colis</label><input id="pg" type="text" data-bind="draft.pkg" value="'+esc(d.pkg)+'" placeholder="Sac de vêtements"></div><div><label for="sz">Taille</label><select id="sz" data-bind="draft.size" data-r>'+Object.keys(SIZE).map(k=>'<option value="'+k+'"'+(k===d.size?' selected':'')+'>'+SIZE[k].label+'</option>').join('')+'</select></div></div><div class="two"><div><label for="rn">Nom du destinataire</label><input id="rn" type="text" data-bind="draft.rcvName" value="'+esc(d.rcvName)+'"></div><div><label for="rp">Téléphone du destinataire</label><input id="rp" type="tel" data-bind="draft.rcvPhone" value="'+esc(d.rcvPhone)+'"></div></div><p class="hint">Articles interdits : armes, drogues, produits dangereux. Un code à 4 chiffres protège la remise.</p>':'')
+  +(qt?'<div class="opt"><div class="row" style="flex-wrap:nowrap"><div class="ico" style="margin:0">'+ICON[del?'box':'moto']+'</div><div><b>'+(del?'Livraison moto':'Moto')+'</b><p class="small muted">'+fmtKm(qt.d)+' · environ '+qt.eta+' min · espèces</p></div></div><div class="price num" style="font-size:1.5rem">'+fmt(qt.price)+'</div></div><span class="chip '+(near?'ok':'bad')+'" style="align-self:flex-start">'+near+' motard'+(near>1?'s':'')+' à moins de '+cfg.radii[0]+' km</span><button class="btn primary block" data-act="order">Commander · '+fmt(qt.price)+'</button>':'<p class="chip bad" style="align-self:flex-start">Choisissez un départ et une destination différents.</p>');
+}
+function vTripCard(t){
+  const r=t.riderId?riderById(t.riderId):null;
+  let h='<div class="row between"><h2 style="font-size:1.5rem">'+(t.status==='searching'?'Recherche d’un motard':t.status==='enroute'?(t.atPickup?'Votre motard est arrivé':'Votre motard arrive'):t.status==='ontrip'?'En route':t.status==='done'?'Course terminée':t.status==='no_rider'?'Aucun motard':'Course annulée')+'</h2>'+chip(t.status)+'</div>';
+  h+='<p class="muted small">'+esc(t.pickupName)+' → '+esc(t.destName)+' · '+t.id+'</p>';
+  if(['searching','enroute','ontrip','done'].includes(t.status))h+=stepper(t);
+  if(t.status==='searching'){
+    const hint=t.offer&&t.offer.riderId===S.rider.id?'<p class="chip acc">Astuce démo : la demande attend le motard connecté. Ouvrez l’onglet Motard pour l’accepter.</p>':'';
+    h+='<div class="row"><div class="spin"></div><p>Rayon de recherche : <b>'+cfg.radii[t.radiusIdx||0]+' km</b></p></div>'+hint+logHTML(t)+'<button class="btn danger block" data-act="cancel">Annuler</button>';
+  }else if(t.status==='no_rider'){
+    h+=logHTML(t)+'<div class="row"><button class="btn primary" data-act="retry">Réessayer</button><button class="btn" data-act="cancel">Annuler</button></div>';
+  }else if(t.status==='enroute'||t.status==='ontrip'){
+    h+='<div class="row" style="flex-wrap:nowrap"><div class="av">'+ini(r.name)+'</div><div style="min-width:0"><b>'+esc(r.name)+'</b><p class="small muted">★ '+r.rating.toFixed(1)+' · '+esc(r.moto)+'</p></div><div style="margin-left:auto"><span class="plate">'+esc(r.plate)+'</span></div></div>';
+    if(t.status==='enroute'&&!t.atPickup)h+='<p>Arrivée dans environ <b>'+t.etaMin+' min</b>.</p>';
+    if(t.pin)h+='<div><p class="small muted" style="margin-bottom:6px">Code de remise à donner au destinataire</p><span class="pin num">'+t.pin+'</span></div>';
+    h+='<div class="kv"><span>À payer en espèces</span><b class="num">'+fmt(t.price)+'</b></div><p class="hint">Appels via l’application : votre numéro reste masqué.</p>';
+    if(t.status==='enroute')h+='<button class="btn danger block" data-act="cancel">Annuler la course</button>';
+    h+=logHTML(t);
+  }else if(t.status==='done'){
+    h+='<div class="kv"><span>Distance</span><b class="num">'+fmtKm(t.d)+'</b></div><div class="kv"><span>Payé en espèces</span><b class="num">'+fmt(t.price)+'</b></div><div><p class="small muted">Notez votre motard</p><div class="stars">'+[1,2,3,4,5].map(i=>'<button class="'+(i<=S.rating?'on':'')+'" data-act="rate" data-v="'+i+'" aria-label="'+i+' étoiles">★</button>').join('')+'</div></div><button class="btn primary block" data-act="newOrder">Nouvelle commande</button>';
+  }else h+='<button class="btn primary block" data-act="newOrder">Nouvelle commande</button>';
+  return h;
+}
+function vHistory(){
+  const L=S.trips.filter(t=>t.custPhone===S.cust.phone);
+  if(!L.length)return '';
+  return '<div class="stack" style="gap:4px"><h3>Historique</h3>'+L.map(t=>'<div class="kv"><span>'+esc(t.pickupName)+' → '+esc(t.destName)+'<br><span class="small muted">'+t.time+' · '+(t.service==='delivery'?'Livraison':'Course')+'</span></span><span class="num" style="text-align:right">'+fmt(t.price)+'<br>'+chip(t.status)+'</span></div>').join('')+'</div>';
+}
+function vCustomer(){
+  if(S.cust.step!=='ok')return vSignup();
+  const t=curTrip();
+  return (t?vTripCard(t):vOrderForm())+vHistory();
+}
+
+/* ---------- rider app ---------- */
+function vRiderPick(){
+  return '<h2 style="font-size:1.6rem">Espace motard</h2><p class="muted">Vous avez une moto ? Créez votre profil, rechargez votre solde et passez en ligne. Dans la vraie application, la connexion se fait par téléphone et code SMS.</p><button class="btn primary block" data-act="riderNew">Créer mon profil motard</button><h3>Motards de démonstration</h3><div>'
+  +S.riders.map(r=>'<div class="kv" style="align-items:center"><div class="row" style="flex-wrap:nowrap"><div class="av">'+ini(r.name)+'</div><div><b>'+esc(r.name)+'</b><p class="small muted">'+esc(r.plate)+' · '+fmt(r.balance)+'</p></div></div><div class="row" style="flex-wrap:nowrap"><span class="chip '+(r.blocked?'bad':r.approved?'ok':'warn')+'">'+(r.blocked?'Bloqué':r.approved?'Validé':r.status==='rejected'?'Refusé':'En attente')+'</span><button class="btn sm" data-act="riderLogin" data-id="'+r.id+'">Ouvrir</button></div></div>').join('')+'</div>';
+}
+function fileField(id,label,key){
+  const u=S.draftR[key];
+  return '<div><label for="'+id+'">'+label+'</label><div class="photo">'+(u?'<img alt="" src="'+u+'">':'Aucune photo')+'</div><input id="'+id+'" type="file" accept="image/*" capture="environment" data-file="draftR.'+key+'"></div>';
+}
+function vRiderForm(){
+  const d=S.draftR,st=S.rider.step;
+  const inp=(id,label,key,ph,type)=>'<div><label for="'+id+'">'+label+'</label><input id="'+id+'" type="'+(type||'text')+'" data-bind="draftR.'+key+'" value="'+esc(d[key])+'" placeholder="'+(ph||'')+'"></div>';
+  const titles=['Qui êtes-vous ?','Vos pièces','Votre moto','Garant et validation'];
+  let h='<div class="row between"><h2 style="font-size:1.5rem">'+titles[st]+'</h2><span class="small muted">Étape '+(st+1)+' sur 4</span></div><div class="rsteps">'+[0,1,2,3].map(i=>'<i class="'+(i<=st?'on':'')+'"></i>').join('')+'</div>';
+  if(st===0)h+=inp('rn','Nom complet','name')+inp('rp','Téléphone','phone','96 00 00 00','tel')+fileField('f4','Photo de profil','facePhoto');
+  if(st===1)h+=inp('ri','N° carte d’identité nationale','idNum','NE-0000000')+fileField('f1','Photo de la carte d’identité','idPhoto')+inp('rl','N° permis de conduire','license','PC-000000')+fileField('f2','Photo du permis','licPhoto');
+  if(st===2)h+=inp('rpl','Plaque d’immatriculation','plate','0000 AA 01')+inp('rm','Marque de la moto','moto','Haojue 125')+fileField('f3','Photo de la moto (plaque visible)','motoPhoto');
+  if(st===3)h+='<p class="muted small">Un garant est facultatif, mais il accélère la validation.</p>'+inp('gn','Nom du garant (facultatif)','gName')+inp('gp','Téléphone du garant','gPhone','90 00 00 00','tel')+'<label class="terms"><input type="checkbox" data-bind="draftR.terms"'+(d.terms?' checked':'')+'><span>J’accepte la commission de '+cfg.commission+' % par course et la recharge minimale de '+fmt(cfg.minTopup)+'.</span></label>';
+  h+='<div class="row" style="flex-wrap:nowrap">'+(st>0?'<button class="btn" data-act="rprev">Retour</button>':'<button class="btn" data-act="riderBack">Annuler</button>')+'<button class="btn primary" style="flex:1" data-act="'+(st<3?'rnext':'riderSubmit')+'">'+(st<3?'Continuer':'Envoyer mon dossier')+'</button></div>';
+  return h;
+}
+function vRiderPending(r){
+  const msg=r.blocked?['Compte bloqué','Contactez l’équipe KabuKabu.','bad']:r.status==='rejected'?['Dossier refusé','Une pièce n’a pas pu être validée. Corrigez votre dossier et recommencez.','bad']:['Dossier en cours de validation','Un agent vérifie votre carte d’identité, votre permis, votre plaque et la photo de votre moto. Vous pourrez ensuite recharger votre solde.','warn'];
+  return '<span class="chip '+msg[2]+'" style="align-self:flex-start">'+msg[0]+'</span><h2 style="font-size:1.6rem">'+esc(r.name)+'</h2><p class="muted">'+msg[1]+'</p><button class="btn primary block" data-act="go" data-route="admin">Ouvrir l’espace admin pour valider</button><button class="btn block" data-act="riderOut">Changer de motard</button>';
+}
+function vOffer(t,r){
+  return '<div class="card" style="border:2px solid var(--brand)"><div class="row between"><h3>Nouvelle demande</h3><span class="chip acc num">Reste <span data-until="'+t.offer.until+'">20 s</span></span></div><p style="margin-top:10px"><b>'+esc(t.pickupName)+'</b> → <b>'+esc(t.destName)+'</b></p><p class="small muted">'+(t.service==='delivery'?'Livraison':'Course')+' · client à '+fmtKm(km(r,t.pickup))+' · trajet '+fmtKm(t.d)+'</p><div style="margin:8px 0"><div class="kv"><span>Le client paie en espèces</span><b class="num">'+fmt(t.price)+'</b></div><div class="kv"><span>Commission déduite du solde</span><span class="num">− '+fmt(t.comm)+'</span></div><div class="kv"><span>Votre gain net</span><b class="num">'+fmt(t.price-t.comm)+'</b></div></div><div class="row" style="flex-wrap:nowrap"><button class="btn primary" style="flex:1" data-act="accept">Accepter</button><button class="btn" style="flex:1" data-act="refuse">Refuser</button></div></div>';
+}
+function vRiderTrip(t){
+  let h='<div class="row between"><h2 style="font-size:1.5rem">Course en cours</h2>'+chip(t.status)+'</div><p><b>'+esc(t.pickupName)+'</b> → <b>'+esc(t.destName)+'</b></p>'+stepper(t)+'<div class="card soft"><p class="small muted">À encaisser en espèces</p><div class="price num">'+fmt(t.price)+'</div><p class="small muted">Commission '+fmt(t.comm)+' prélevée sur votre solde à la fin. Gain net '+fmt(t.price-t.comm)+'.</p></div>';
+  if(t.service==='delivery')h+='<p class="small">Colis : '+esc(t.pkg||'non précisé')+' · destinataire '+esc(t.rcvName)+' ('+esc(t.rcvPhone)+')</p>';
+  if(t.status==='enroute')h+='<button class="btn primary block" data-act="pickedUp"'+(t.atPickup?'':' disabled')+'>'+(t.atPickup?(t.service==='delivery'?'Colis récupéré':'Client à bord'):'En route vers le client…')+'</button>';
+  else{
+    if(t.service==='delivery')h+='<div><label for="pin">Code de remise donné par le destinataire</label><input id="pin" type="text" inputmode="numeric" maxlength="4" data-bind="rider.pin" value="'+esc(S.rider.pin)+'"></div>';
+    h+='<button class="btn primary block" data-act="finish"'+(t.atDest?'':' disabled')+'>'+(t.atDest?(t.service==='delivery'?'Confirmer la remise':'Terminer la course'):'En route vers la destination…')+'</button>';
+  }
+  return h;
+}
+function vRiderDash(r){
+  const offer=S.trips.find(t=>t.status==='searching'&&t.offer&&t.offer.riderId===r.id);
+  const act=S.trips.find(t=>t.riderId===r.id&&(t.status==='enroute'||t.status==='ontrip'));
+  const mine=S.trips.filter(t=>t.riderId===r.id&&t.status==='done');
+  const gross=sum(mine,t=>t.price),comm=sum(mine,t=>t.comm),low=r.balance<cfg.minBalance;
+  const tx=S.txns.filter(x=>x.id===r.id).slice().reverse().slice(0,6);
+  let h='';
+  if(offer)h+=vOffer(offer,r);
+  if(act)h+=vRiderTrip(act);
+  h+='<div class="row between" style="flex-wrap:nowrap"><div class="row" style="flex-wrap:nowrap"><div class="av">'+ini(r.name)+'</div><div><b>'+esc(r.name)+'</b><p class="small muted">'+esc(r.moto)+' · '+esc(r.plate)+' · ★ '+(r.rating?r.rating.toFixed(1):'nouveau')+'</p></div></div><button class="btn sm" data-act="riderOut">Changer</button></div>';
+  if(!act)h+='<div class="stack" style="align-items:center;text-align:center"><button class="go'+(r.available?' on':'')+'" data-act="toggleAvail"'+(low&&!r.available?' disabled':'')+'>'+(r.available?'En ligne':'GO')+'</button><p class="'+(r.available?'':'muted')+'"><b>'+(r.available?'Vous êtes en ligne':'Vous êtes hors ligne')+'</b></p><p class="small muted">'+(low&&!r.available?'Rechargez votre solde pour recevoir des demandes.':r.available?'Les clients à moins de '+cfg.radii[0]+' km peuvent vous voir. Touchez pour passer hors ligne.':'Touchez GO pour recevoir des demandes.')+'</p></div>';
+  h+='<div class="card soft stack" style="gap:12px"><div class="row between"><div><p class="small muted">Solde du portefeuille</p><div class="price num">'+fmt(r.balance)+'</div></div><span class="chip '+(low?'bad':'ok')+'">'+(low?'Sous le seuil':'Actif')+'</span></div><p class="small muted">Les demandes arrivent tant que le solde dépasse '+fmt(cfg.minBalance)+'.</p>'
+  +'<div class="pills">'+[2000,5000,10000].map(a=>'<button class="pill" aria-pressed="'+(S.topup.amount===a)+'" data-act="amt" data-v="'+a+'">'+fmt(a)+'</button>').join('')+'</div>'
+  +'<div class="two"><div><label for="ta">Autre montant</label><input id="ta" type="number" min="'+cfg.minTopup+'" step="500" data-bind="topup.amount" value="'+S.topup.amount+'" data-r></div><div><label for="tm">Paiement</label><select id="tm" data-bind="topup.method"><option value="momo"'+(S.topup.method==='momo'?' selected':'')+'>Mobile money</option><option value="agent"'+(S.topup.method==='agent'?' selected':'')+'>Agent KabuKabu</option></select></div></div>'
+  +'<button class="btn brand block" data-act="topup">Recharger '+fmt(S.topup.amount)+'</button><p class="hint">Minimum '+fmt(cfg.minTopup)+'. Simulation : en production, le solde est crédité après confirmation du paiement ou par un agent.</p></div>';
+  h+='<div class="stack" style="gap:10px"><h3>Aujourd’hui</h3><div class="grid4"><div class="kpi"><span class="small muted">Courses</span><b class="num">'+mine.length+'</b></div><div class="kpi"><span class="small muted">Encaissé</span><b class="num" style="font-size:1.2rem">'+fmt(gross)+'</b></div><div class="kpi"><span class="small muted">Commission</span><b class="num" style="font-size:1.2rem">'+fmt(comm)+'</b></div><div class="kpi"><span class="small muted">Gain net</span><b class="num" style="font-size:1.2rem">'+fmt(gross-comm)+'</b></div></div></div>'
+  +'<div class="stack" style="gap:4px"><h3>Portefeuille</h3>'+(tx.length?tx.map(x=>'<div class="kv"><span>'+esc(x.label)+'<br><span class="small muted">'+x.t+'</span></span><span class="num" style="text-align:right">'+(x.amount>0?'+':'−')+' '+fmt(Math.abs(x.amount))+'<br><span class="small muted">Solde '+fmt(x.after)+'</span></span></div>').join(''):'<p class="muted small">Aucun mouvement.</p>')+'</div>';
+  return h;
+}
+function vRider(){
+  if(S.rider.mode==='new'&&!S.rider.id)return vRiderForm();
+  if(!S.rider.id)return vRiderPick();
+  const r=riderById(S.rider.id);
+  if(!r.approved||r.blocked)return vRiderPending(r);
+  return vRiderDash(r);
+}
+
+/* ---------- admin ---------- */
+function exampleHTML(){
+  const p=priceFor(5),c=Math.round(p*cfg.commission/100),p8=priceFor(8);
+  return 'Course de 5 km : client '+fmt(p)+' · KabuKabu '+fmt(c)+' · motard '+fmt(p-c)+'. Course de 8 km : '+fmt(p8)+'.';
+}
+function vAdminBody(){
+  const done=S.trips.filter(t=>t.status==='done'),pend=S.riders.filter(r=>r.status==='pending'),tab=S.admTab;
+  const num=(id,label,path,val,step)=>'<div><label for="'+id+'">'+label+'</label><input id="'+id+'" type="number" step="'+(step||1)+'" min="0" data-bind="'+path+'" data-live="settings" value="'+val+'"></div>';
+  const doc=(u,l)=>'<div><div class="photo">'+(u?'<img alt="" src="'+u+'">':'Pas d’image (démo)')+'</div><p class="small muted">'+l+'</p></div>';
+  if(tab==='dash'){
+    const last=done.slice(-10),mx=Math.max.apply(null,last.map(t=>t.price).concat([1]));
+    return '<h2 style="font-size:1.8rem">Tableau de bord</h2><div class="grid4"><div class="kpi"><span class="small muted">Courses terminées</span><b class="num">'+done.length+'</b></div><div class="kpi"><span class="small muted">Espèces encaissées par les motards</span><b class="num" style="font-size:1.25rem">'+fmt(sum(done,t=>t.price))+'</b></div><div class="kpi" style="background:var(--brand-soft)"><span class="small muted">Commission KabuKabu</span><b class="num" style="font-size:1.25rem">'+fmt(sum(done,t=>t.comm))+'</b></div><div class="kpi"><span class="small muted">Motards en ligne</span><b class="num">'+S.riders.filter(r=>r.approved&&!r.blocked&&r.available).length+'</b></div><div class="kpi"><span class="small muted">Dossiers à valider</span><b class="num">'+pend.length+'</b></div></div>'
+    +'<div class="card stack"><h3>Prix des dernières courses</h3><div class="bars" role="img" aria-label="Prix des dix dernières courses">'+last.map(t=>'<div style="height:'+Math.round(t.price/mx*100)+'%" title="'+fmt(t.price)+'"></div>').join('')+'</div><p class="hint">Chaque barre est une course terminée, la plus récente à droite.</p></div>'
+    +(pend.length?'<div class="card soft row between"><span><b>'+pend.length+' dossier'+(pend.length>1?'s':'')+' en attente de validation</b></span><button class="btn primary sm" data-act="admTab" data-v="riders">Examiner</button></div>':'');
+  }
+  if(tab==='riders'){
+    return '<h2 style="font-size:1.8rem">Motards</h2>'+(pend.length?'<div class="stack"><h3>Dossiers à valider</h3>'+pend.map(r=>{
+      const ck=S.checks[r.id]||{},ok=ck.id&&ck.lic&&ck.plate&&ck.moto,ph=r.photos||{};
+      return '<div class="card stack"><div><b>'+esc(r.name)+'</b><p class="small muted">Tél. '+esc(r.phone)+' · CNI '+esc(r.idNum)+' · Permis '+esc(r.license)+' · Plaque '+esc(r.plate)+' · '+esc(r.moto)+(r.guarantor?' · Garant '+esc(r.guarantor):'')+'</p></div><div class="docs">'+doc(ph.id,'Carte d’identité')+doc(ph.lic,'Permis')+doc(ph.moto,'Moto et plaque')+doc(ph.face,'Profil')+'</div><div class="checks">'
+      +[['id','La carte d’identité est lisible et correspond au nom'],['lic','Le permis est valide'],['plate','La plaque correspond à celle de la moto'],['moto','La photo de la moto est conforme']].map(c=>'<label><input type="checkbox" data-bind="checks.'+r.id+'.'+c[0]+'" data-r'+(ck[c[0]]?' checked':'')+'>'+c[1]+'</label>').join('')
+      +'</div><div class="row"><button class="btn primary" data-act="approve" data-id="'+r.id+'"'+(ok?'':' disabled')+'>Approuver</button><button class="btn danger" data-act="reject" data-id="'+r.id+'">Refuser</button></div></div>';}).join('')+'</div>':'')
+    +'<div class="card"><div class="tw"><table><thead><tr><th>Nom</th><th>Plaque</th><th>Statut</th><th>Solde</th><th>Courses</th><th></th></tr></thead><tbody>'+S.riders.map(r=>'<tr><td>'+esc(r.name)+'</td><td class="num">'+esc(r.plate)+'</td><td><span class="chip '+(r.blocked?'bad':r.approved?(r.available?'ok':''):'warn')+'">'+(r.blocked?'Bloqué':r.approved?(r.available?'En ligne':'Hors ligne'):r.status==='rejected'?'Refusé':'En attente')+'</span></td><td class="num">'+fmt(r.balance)+'</td><td class="num">'+S.trips.filter(t=>t.riderId===r.id&&t.status==='done').length+'</td><td>'+(r.approved?'<button class="btn sm '+(r.blocked?'':'danger')+'" data-act="block" data-id="'+r.id+'">'+(r.blocked?'Débloquer':'Bloquer')+'</button>':'')+'</td></tr>').join('')+'</tbody></table></div></div>';
+  }
+  if(tab==='trips')return '<h2 style="font-size:1.8rem">Courses</h2><div class="card"><div class="tw"><table><thead><tr><th>N°</th><th>Heure</th><th>Type</th><th>Trajet</th><th>Prix</th><th>Commission</th><th>Statut</th></tr></thead><tbody>'+S.trips.map(t=>'<tr><td class="num">'+t.id+'</td><td>'+t.time+'</td><td>'+(t.service==='delivery'?'Livraison':'Course')+'</td><td>'+esc(t.pickupName)+' → '+esc(t.destName)+'</td><td class="num">'+fmt(t.price)+'</td><td class="num">'+fmt(t.comm)+'</td><td>'+chip(t.status)+'</td></tr>').join('')+'</tbody></table></div></div>';
+  if(tab==='settings')return '<h2 style="font-size:1.8rem">Tarifs et règles</h2><div class="card stack"><div class="grid4">'+num('c1','Prix de départ (FCFA)','cfg.base',cfg.base,50)+num('c2','Prix par km (FCFA)','cfg.perKm',cfg.perKm,10)+num('c3','Prix minimum (FCFA)','cfg.min',cfg.min,50)+num('c4','Commission (%)','cfg.commission',cfg.commission)+num('c5','Recharge minimum (FCFA)','cfg.minTopup',cfg.minTopup,500)+num('c6','Solde minimum pour recevoir des demandes','cfg.minBalance',cfg.minBalance,50)+num('c7','Rayon 1 (km)','cfg.radii.0',cfg.radii[0])+num('c8','Rayon 2 (km)','cfg.radii.1',cfg.radii[1])+num('c9','Rayon 3 (km)','cfg.radii.2',cfg.radii[2])+'</div><p class="chip acc" id="ex" style="align-self:flex-start;white-space:normal">'+exampleHTML()+'</p><p class="hint">Avec 100 FCFA par km et un minimum de 500 FCFA, le prix est de 500 FCFA jusqu’à 5 km.</p></div>';
+  return '<h2 style="font-size:1.8rem">Alertes anti-fraude</h2><div class="card">'+S.alerts.map(a=>'<div class="kv"><span>'+esc(a.text)+'</span><span class="chip '+a.kind+'">'+a.time+'</span></div>').join('')+'</div>';
+}
+function vAdmin(){
+  const tabs=[['dash','Tableau de bord'],['riders','Motards'],['trips','Courses'],['settings','Tarifs'],['alerts','Alertes']];
+  return '<div class="adm wrap"><nav class="side" aria-label="Administration">'+tabs.map(t=>'<button data-act="admTab" data-v="'+t[0]+'" aria-pressed="'+(S.admTab===t[0])+'">'+t[1]+'</button>').join('')+'</nav><div class="stack" id="admMain" style="gap:20px">'+vAdminBody()+'</div></div>';
+}
+
+/* ---------- routing and render ---------- */
+function buildChrome(){
+  const r=S.route,nav=$('#nav'),view=$('#view'),foot=$('#foot');
+  if(r==='accueil'){
+    nav.innerHTML='<div class="nav"><button class="logo" data-act="go" data-route="accueil" aria-label="Accueil KabuKabu">'+LOGO+'KabuKabu</button><nav class="links" aria-label="Sections"><button data-act="scroll" data-to="s-services">Services</button><button data-act="scroll" data-to="s-how">Comment ça marche</button><button data-act="scroll" data-to="s-prices">Tarifs</button><button data-act="scroll" data-to="s-rider">Devenir motard</button><button data-act="scroll" data-to="s-faq">Questions</button></nav><div class="row"><button class="btn sm" data-act="go" data-route="motard">Espace motard</button><button class="btn primary sm" data-act="go" data-route="commander">Commander</button></div></div>';
+    view.innerHTML=vLanding();
+    foot.hidden=false;
+    foot.innerHTML='<div class="wrap"><div><div class="logo" style="cursor:default">'+LOGO+'KabuKabu</div><p class="muted small" style="margin-top:8px">Moto-taxi et livraison à Niamey, Niger.<br>Prototype de démonstration.</p></div><div class="stack" style="gap:2px"><button data-act="go" data-route="commander">Commander une course</button><button data-act="go" data-route="motard">Devenir motard</button><button data-act="go" data-route="admin">Espace équipe</button></div></div>';
+    mountMap($('#heroMap'),heroCtx,false);MAP.interactive=false;
+    $('#heroMap').style.cssText='position:absolute;inset:0';
+    updateCalcs();
+  }else{
+    nav.innerHTML='<div class="nav"><button class="logo" data-act="go" data-route="accueil" aria-label="Retour au site">'+LOGO+'KabuKabu</button><nav class="tabs" aria-label="Espace"><button data-act="go" data-route="commander" aria-pressed="'+(r==='commander')+'">Client</button><button data-act="go" data-route="motard" aria-pressed="'+(r==='motard')+'">Motard</button><button data-act="go" data-route="admin" aria-pressed="'+(r==='admin')+'">Admin</button></nav><div class="row"><span class="chip acc">Mode démo</span><button class="btn sm" data-act="reset">Réinitialiser</button></div></div>';
+    foot.hidden=true;
+    if(r==='admin')view.innerHTML=vAdmin();
+    else{view.innerHTML='<div class="shell"><div class="mapbox" id="appMap"></div><aside class="panel" id="panel"></aside></div>';mountMap($('#appMap'),appCtx,true);}
+  }
+}
+function go(route){S.route=route;MAP=null;buildChrome();render();window.scrollTo(0,0);}
+function render(){
+  if(S.route==='accueil'){renderHero();}
+  else if(S.route==='admin'){const m=$('#admMain');if(m){m.innerHTML=vAdminBody();document.querySelectorAll('.side button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===S.admTab)));}}
+  else{const p=$('#panel');if(p){const st=p.scrollTop;p.innerHTML=S.route==='commander'?vCustomer():vRider();p.scrollTop=st;}}
+  mapSync();
+}
+let tt;
+function toast(m,k){const t=$('#toast');t.textContent=m;t.className='show'+(k==='bad'?' bad':'');clearTimeout(tt);tt=setTimeout(()=>{t.className='';},3400);}
+function setPath(path,val){const p=path.split('.');let o=p[0]==='cfg'?cfg:S;for(let i=p[0]==='cfg'?1:0;i<p.length-1;i++){if(o[p[i]]==null)o[p[i]]={};o=o[p[i]];}o[p[p.length-1]]=val;}
+document.addEventListener('input',e=>{
+  const el=e.target;
+  if(el.dataset.live==='calc'){updateCalcs();return;}
+  if(!el.dataset.bind||el.type==='checkbox'||el.tagName==='SELECT')return;
+  setPath(el.dataset.bind,el.type==='number'?Number(el.value):el.value);
+  if(el.dataset.live==='settings'){const x=$('#ex');if(x)x.textContent=exampleHTML();}
+});
+document.addEventListener('change',e=>{
+  const el=e.target;
+  if(el.dataset.file){const f=el.files&&el.files[0];if(f){setPath(el.dataset.file,URL.createObjectURL(f));render();}return;}
+  if(!el.dataset.bind)return;
+  setPath(el.dataset.bind,el.type==='checkbox'?el.checked:el.type==='number'?Number(el.value):el.value);
+  if(el.dataset.r!==undefined)render();
+});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b||b.disabled)return;act(b.dataset.act,b.dataset);});
+function nav(route){if(location.hash==='#'+route)go(route);else location.hash='#'+route;}
+function act(a,d){
+  const r=S.rider.id?riderById(S.rider.id):null;
+  switch(a){
+    case 'go':nav(d.route);break;
+    case 'scroll':{const el=document.getElementById(d.to);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});break;}
+    case 'reset':{const rt=S.route;S.trips.forEach(t=>clearTimeout(t.timer));init();go(rt);toast('Démo réinitialisée');break;}
+    case 'zoom':zoomMap(Number(d.f));break;
+    case 'fitmap':if(MAP){MAP.fitKey='';mapSync();}break;
+    case 'heroSvc':S.hero.service=d.v;render();break;
+    case 'heroOrder':S.draft.service=S.hero.service;S.draft.pickup=S.hero.pickup;S.draft.dest=S.hero.dest;S.curId=null;nav('commander');break;
+    case 'heroGo':S.draft.service=d.v;S.curId=null;nav('commander');break;
+    case 'admTab':S.admTab=d.v;render();break;
+    case 'svc':S.draft.service=d.v;render();break;
+    case 'demoCust':S.cust={step:'ok',name:'Aïchatou Moussa',phone:'96 12 34 56'};render();break;
+    case 'logoutCust':S.cust={step:'signup'};S.curId=null;render();break;
+    case 'sendOtp':{const c=S.draftC;if(c.name.trim().length<2)return toast('Entrez votre nom complet.','bad');if(last8(c.phone).length!==8)return toast('Le numéro doit avoir 8 chiffres.','bad');S.cust={step:'otp'};render();break;}
+    case 'verifyOtp':{if(S.draftC.otp.trim()!=='4821')return toast('Code incorrect.','bad');S.cust={step:'ok',name:S.draftC.name.trim(),phone:S.draftC.phone.trim()};toast('Compte créé');render();break;}
+    case 'order':{
+      const q=S.draft;
+      if(q.service==='delivery'&&(!q.pkg.trim()||!q.rcvName.trim()||last8(q.rcvPhone).length!==8))return toast('Décrivez le colis et indiquez nom et téléphone du destinataire.','bad');
+      const p=place(q.pickup),dd=place(q.dest),qt=quote(p,dd,q.service,q.size);
+      const t={id:'C-'+String(S.seq++).padStart(4,'0'),service:q.service,pickup:{...p},dest:{...dd},pickupName:p.name,destName:dd.name,note:q.note,pkg:q.pkg,rcvName:q.rcvName,rcvPhone:q.rcvPhone,price:qt.price,comm:qt.comm,d:qt.d,pin:q.service==='delivery'?String(1000+Math.floor(Math.random()*9000)):null,status:'searching',riderId:null,time:now(),custName:S.cust.name,custPhone:S.cust.phone,log:[]};
+      S.trips.unshift(t);S.curId=t.id;S.rating=0;startMatching(t);break;}
+    case 'cancel':{const t=curTrip();if(t){clearTimeout(t.timer);t.status='cancelled';t.offer=null;}render();break;}
+    case 'retry':{const t=curTrip();t.status='searching';startMatching(t);break;}
+    case 'newOrder':S.curId=null;render();break;
+    case 'rate':{S.rating=Number(d.v);const t=curTrip(),rr=t&&riderById(t.riderId);if(rr&&!t.rated){rr.rating=Math.round((rr.rating*rr.rn+S.rating)/(rr.rn+1)*10)/10;rr.rn++;t.rated=true;}render();break;}
+    case 'riderNew':S.rider.mode='new';S.rider.step=0;render();break;
+    case 'riderBack':S.rider.mode='pick';render();break;
+    case 'riderLogin':S.rider.id=d.id;S.rider.pin='';render();break;
+    case 'riderOut':S.rider.id=null;S.rider.mode='pick';render();break;
+    case 'rprev':S.rider.step=Math.max(0,S.rider.step-1);render();break;
+    case 'rnext':{
+      const f=S.draftR,st=S.rider.step;
+      if(st===0&&(!f.name.trim()||last8(f.phone).length!==8||!f.facePhoto))return toast('Indiquez votre nom, un téléphone à 8 chiffres et une photo de profil.','bad');
+      if(st===1&&(!f.idNum.trim()||!f.idPhoto||!f.license.trim()||!f.licPhoto))return toast('Ajoutez les numéros et les photos de la carte d’identité et du permis.','bad');
+      if(st===2&&(!f.plate.trim()||!f.moto.trim()||!f.motoPhoto))return toast('Indiquez la plaque, la marque et ajoutez la photo de la moto.','bad');
+      S.rider.step=st+1;render();break;}
+    case 'riderSubmit':{
+      const f=S.draftR,ph=last8(f.phone),plate=f.plate.trim().toUpperCase(),idn=f.idNum.trim().toUpperCase(),lic=f.license.trim().toUpperCase();
+      if(!f.terms)return toast('Acceptez les conditions pour continuer.','bad');
+      const dup=S.riders.find(x=>last8(x.phone)===ph||x.idNum.toUpperCase()===idn||x.plate.toUpperCase()===plate||x.license.toUpperCase()===lic);
+      if(dup){const why=last8(dup.phone)===ph?'ce numéro de téléphone':dup.idNum.toUpperCase()===idn?'cette carte d’identité':dup.plate.toUpperCase()===plate?'cette plaque':'ce permis';
+        S.alerts.unshift({time:now(),kind:'bad',text:'Inscription refusée : '+why+' est déjà lié au compte de '+dup.name+'.'});
+        return toast('Un compte existe déjà avec '+why+'.','bad');}
+      const id='r'+(S.riders.length+1);
+      S.riders.push({id,name:f.name.trim(),phone:f.phone.trim(),plate,idNum:idn,license:lic,moto:f.moto.trim(),guarantor:f.gName.trim()?f.gName.trim()+' ('+f.gPhone.trim()+')':'',balance:0,available:false,approved:false,status:'pending',blocked:false,lat:13.512+Math.random()*0.006,lng:2.108+Math.random()*0.012,rating:0,rn:0,photos:{id:f.idPhoto,lic:f.licPhoto,moto:f.motoPhoto,face:f.facePhoto}});
+      S.rider.id=id;S.rider.step=0;S.draftR={name:'',phone:'',idNum:'',license:'',plate:'',moto:'',gName:'',gPhone:'',terms:false,idPhoto:null,licPhoto:null,motoPhoto:null,facePhoto:null};
+      toast('Dossier envoyé');render();break;}
+    case 'toggleAvail':r.available=!r.available;render();break;
+    case 'amt':S.topup.amount=Number(d.v);render();break;
+    case 'topup':{
+      if(!(S.topup.amount>=cfg.minTopup))return toast('Recharge minimum : '+fmt(cfg.minTopup)+'.','bad');
+      r.balance+=S.topup.amount;S.txns.push({id:r.id,t:now(),label:'Recharge '+(S.topup.method==='momo'?'mobile money':'agent'),amount:S.topup.amount,after:r.balance});
+      toast('Solde rechargé : '+fmt(r.balance));render();break;}
+    case 'accept':{const t=S.trips.find(x=>x.status==='searching'&&x.offer&&x.offer.riderId===r.id);if(t)acceptOffer(t,r);break;}
+    case 'refuse':{const t=S.trips.find(x=>x.status==='searching'&&x.offer&&x.offer.riderId===r.id);if(t)declineOffer(t,r,'a refusé');break;}
+    case 'pickedUp':{const t=S.trips.find(x=>x.riderId===r.id&&x.status==='enroute');t.status='ontrip';t.atDest=false;logT(t,'Départ vers '+t.destName);moveRider(r,t.dest,()=>{t.atDest=true;logT(t,r.name+' est arrivé à destination');render();});render();break;}
+    case 'finish':{const t=S.trips.find(x=>x.riderId===r.id&&x.status==='ontrip');if(t.pin&&S.rider.pin.trim()!==t.pin)return toast('Code de remise incorrect.','bad');S.rider.pin='';completeTrip(t);break;}
+    case 'approve':{const x=riderById(d.id);x.approved=true;x.status='approved';toast(x.name+' est validé. Il peut recharger son solde.');render();break;}
+    case 'reject':{const x=riderById(d.id);x.status='rejected';render();break;}
+    case 'block':{const x=riderById(d.id);x.blocked=!x.blocked;if(x.blocked)x.available=false;render();break;}
+  }
+}
+function fromHash(){const h=location.hash.replace('#','');return ['accueil','commander','motard','admin'].includes(h)?h:'accueil';}
+window.addEventListener('hashchange',()=>go(fromHash()));
+setInterval(()=>{document.querySelectorAll('[data-until]').forEach(el=>{el.textContent=Math.max(0,Math.ceil((Number(el.dataset.until)-Date.now())/1000))+' s';});
+  if(S&&S.route==='accueil'&&!document.hidden)drawMap();},100);
+window.addEventListener('resize',()=>{if(MAP&&S.route!=='accueil'){MAP.fitKey='';mapSync();}});
+init();go(fromHash());
+</script>
+
+</body></html>
